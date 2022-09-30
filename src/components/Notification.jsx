@@ -10,13 +10,7 @@ import * as ACTIONS from "../redux/actions.js";
 
 import gsap from "gsap";
 
-import ErrorNotificationUrl, {
-	ReactComponent as ErrorNotificationIcon
-} from "../assets/icons/notification-error.svg";
-
-import MessageNotificationUrl, {
-	ReactComponent as MessageNotificationIcon
-} from "../assets/icons/notification-message.svg";
+import * as Icons from "./Icons.jsx";
 
 export default props => {
 

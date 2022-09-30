@@ -1,6 +1,7 @@
 import React, {
 	useEffect,
-	useRef
+	useRef,
+	useState
 } from "react";
 
 import {
@@ -11,9 +12,7 @@ import * as ACTIONS from "../redux/actions.js";
 import gsap from "gsap";
 import $ from "jquery";
 
-import DeleteIconUrl, {
-	ReactComponent as DeleteIconIcon
-} from "../assets/icons/delete.svg";
+import * as Icons from "./Icons.jsx";
 
 export default props => {
 
@@ -55,9 +54,7 @@ export default props => {
 					>
 						{
 							menuItem.hasOwnProperty("icon") ?
-								{
-									"delete": <DeleteIconIcon />
-								}[menuItem.icon]
+								<menuItem.icon />
 							: null
 						}
 						<p>{menuItem.title}</p>

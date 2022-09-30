@@ -14,14 +14,11 @@ import {
 import $ from "jquery";
 
 import Icon from "../assets/images/icon.png";
-import foldArrowUrl, {
-	ReactComponent as FoldArrowIcon
-} from "../assets/icons/fold-arrow.svg";
+import * as Icons from "./Icons.jsx";
 
 const SubMenu = props => {
 
 	const commands = useContext(CONTEXT.commands);
-	// console.log({commands, subMenu: props.subMenu});
 
 	const [selectedItem, setSelectedItem] = useState(null);
 
@@ -41,7 +38,7 @@ const SubMenu = props => {
 						{
 							subMenuItem.hasOwnProperty("subMenu") ?
 								<>
-									<FoldArrowIcon />
+									<Icons.FoldArrow />
 									{ selectedItem === subMenuItem.title ? <SubMenu subMenu={subMenuItem.subMenu} /> : null }
 								</>
 							:
