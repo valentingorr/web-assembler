@@ -1,0 +1,31 @@
+@mixin size($size, $radius: 0) {
+	width: $size;
+	height: $size;
+	@if $radius != 0 {
+		border-radius: $radius;
+	}
+}
+
+@mixin bg($url, $size, $position: center) {
+	background-image: url($url);
+	background-repeat: no-repeat;
+	background-position: $position;
+	background-size: $size;
+}
+
+$body-primary: #1d1d1d;
+$body-secondary: #222;
+$body-tertiary: #181818;
+
+$sep-primary: #333;
+
+$text-primary: #ddd;
+$text-secondary: #bbb;
+
+$color-primary: #7776ff;
+$color-secondary: #ad2df1;
+$color-red: #c91841;
+
+:export{
+	body-primary: $body-primary;
+}

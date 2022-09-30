@@ -1,0 +1,86 @@
+@import "config";
+
+%tab {
+	transition: .3s all ease;
+	cursor: pointer;
+	position: relative;
+	> p {
+		margin: 0;
+		padding: 8px 16px;
+		font-size: 0.8rem;
+		font-family: Poppins-Medium, sans-serif;
+		text-transform: uppercase;
+		color: $text-primary;
+	}
+	&:hover, &.selected {
+		background-color: $body-secondary;
+		> p {
+			color: $color-primary;
+		}
+	}
+}
+
+%icon {
+	@include size(30px);
+	transition: .3s all ease;
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+	> svg {
+		@include size(70%);
+		fill: $color-primary;
+	}
+	&:hover {
+		background-color: rgba($body-secondary, .8);
+	}
+}
+
+%input {
+	background-color: $body-secondary;
+	padding: 0.5rem;
+	width: 100%;
+	border: 1px solid $sep-primary;
+	color: $text-secondary;
+	&[type="color"] {
+		padding: 0;
+		border: none;
+		background-color: none;
+	}
+}
+
+%label {
+	color: $text-primary;
+	font-size: 1rem;
+	margin: 0;
+	font-family: Poppins-Light, sans-serif;
+}
+
+%input-container {
+	display: grid;
+	grid-template-rows: auto auto;
+	grid-gap: 5px;
+	> label {
+		@extend %label;
+	}
+	> input {
+		@extend %input;
+	}
+}
+
+%button {
+	transition: .3s all ease;
+	background-color: $color-primary;
+	padding: 0.5rem;
+	color: $text-primary;
+	font-family: Poppins-SemiBold, sans-serif;
+	border-radius: 4px;
+	&:hover {
+		background-color: rgba($color-primary, .8);
+	}
+	&[type="submit"] {
+		background-color: $color-secondary;
+		&:hover {
+			background-color: rgba($color-secondary, .8);
+		}
+	}
+}
