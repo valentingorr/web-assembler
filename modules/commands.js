@@ -9,8 +9,54 @@ const commands = new Proxy([
 	{
 		name: "newProject",
 		exec: (...args) => {
-			window.webContents.send("newProject");
+			window.webContents.send("form", "newProject");
 			return { status: true };
+		}
+	},
+	{
+		name: "projects",
+		exec: (...args) => {
+			switch (args[0]) {
+				case "new":
+					args[1].viewports = args[1].viewports.map(viewport => {
+						const { width, height, background, name } = viewport;
+						return { width, height, background, name };
+					});
+					JsonAtlas.table("projects").insert({
+						...args[1],
+						title: args[1].title || "untitled"
+					});
+					break;
+			}
+			return { status: false, message: "invalid supplied action" };
+		}
+	},
+	{
+		name: "viewports",
+		exec: (...args) => {
+			const parameters = {
+				...args[0]
+			};
+
+			switch(parameters.action) {
+				case "save":
+					const { width, height, name, background } = parameters.viewport;
+					JsonAtlas.table("viewports").insert({ size: [width, height], name, background });
+					return { status: true };
+					break;
+				case "get":
+					return {
+						status: true,
+						resolve: JsonAtlas.table("viewports").select()
+					}
+					break;
+				case "remove":
+					JsonAtlas.table("viewports").remove(item => item._id === parameters.id);
+					return { status: true };
+					break;
+			}
+
+			return { status: false, message: "invalid supplied action" };
 		}
 	}
 
@@ -39,7 +85,7 @@ const commands = new Proxy([
 				if(response.hasOwnProperty("resolve")) return resolve(response.resolve);
 				return resolve();
 			} else {
-				if(response.hasOwnProperty("message")) return reject(response.message);
+				if(response.hasOwnProperty("message")) return reject(response);
 				reject();
 			}
 		});

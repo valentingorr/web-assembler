@@ -76,6 +76,13 @@ const Color = props => {
 const Text = props => {
 
 	const token = uuid();
+	const [value, setValue] = useState(props.default || "");
+
+	useEffect(() => {
+		setValue(props.default);
+	}, [props.default]);
+
+	useEffect(() => props.onChange(value), [value]);
 
 	return (
 		<div scomponent="text-input">
@@ -84,7 +91,14 @@ const Text = props => {
 					<label scomponent="label" htmlFor={`${token}-input`}>{props.label}</label>
 				: null
 			}
-			<input type="text" scomponent="input" />
+			<div className="input-wrapper">
+				<input onChange={event => {
+					setValue(event.target.value);
+				}} value={value} type="text" scomponent="input" />
+				<button onClick={() => setValue("")} type="button" scomponent="icon">
+					<Icons.Cross />
+				</button>
+			</div>
 		</div>
 	);
 }

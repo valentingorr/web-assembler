@@ -75,6 +75,34 @@ html, html > body, #root {
 	&[scomponent="value-input"] { @extend %value-input };
 	&[scomponent="color-input"] { @extend %color-input };
 	&[scomponent="text-input"] { @extend %text-input };
+	&[scomponent="input"] { @extend %input };
+}
+
+[description] {
+	position: relative;
+	&:after {
+		@extend %label;
+		content: attr(description);
+		position: absolute;
+		top: calc(100% + 5px);
+		left: 50%;
+		transform: translateY(100%) translateX(-50%);
+		background-color: $body-primary;
+		transition: .3s all ease;
+		opacity: 0;
+		width: max-content;
+		padding: 0.5em;
+		pointer-events: none;
+		border-radius: 5px;
+		overflow: hidden;
+		font-size: 0.75rem;
+	}
+	&:hover {
+		&:after {
+			opacity: 1;
+			transform: translateY(0%) translateX(-50%);
+		}
+	}
 }
 
 button, a {
@@ -214,12 +242,16 @@ body {
 			position: fixed;
 			background-color: $body-primary;
 			border: 1px solid $sep-primary;
+			border-radius: 5px;
 			z-index: 1000;
 			> .item {
 				cursor: pointer;
 				width: 100%;
 				p {
 					@extend %label;
+					padding: .25em;
+					padding-left: 0;
+					padding-right: 1em;
 				}
 				&.icon {
 					display: grid;
@@ -244,6 +276,7 @@ body {
 			left: 0;
 			bottom: 0;
 			margin: .5em;
+			z-index: 1000;
 			[component="notification"] {
 				padding: 0.5em .3em;
 				background-color: $body-primary;
@@ -309,7 +342,10 @@ body {
 						}
 					}
 				}
+				transition: width .3s;
 				width: 70%;
+				@media (max-width: 1500px) { width: 80%; }
+				@media (max-width: 1200px) { width: 95%; }
 				max-height: 80vh;
 				grid-template-rows: 1fr 7fr;
 				grid-template-columns: 100%;
@@ -335,14 +371,15 @@ body {
 							background: $color-primary;
 						}
 						> .wrapper {
+							padding: 0.5em;
 							position: absolute;
 							left: 0;
 							top: 0;
 							right: 0;
 							display: grid;
-							grid-template-columns: repeat(auto-fit, minmax(100px, 200px));
+							grid-template-columns: repeat(auto-fit, minmax(100px, 180px));
 							grid-template-rows: repeat(auto-fit, auto);
-							grid-gap: 5px;
+							grid-gap: 10px;
 							justify-content: flex-start;
 							align-items: start;
 							> .model {
@@ -410,6 +447,7 @@ body {
 								> main {
 									height: 100%;
 									overflow-y: auto;
+									overflow-x: visible;
 									position: relative;
 									> .wrapper {
 										position: absolute;
@@ -423,10 +461,24 @@ body {
 											display: grid;
 											grid-template-columns: repeat(3, 1fr);
 											grid-template-rows: auto auto;
-											grid-row: 5px;
 											border: 1px solid transparent;
 											> section {
-												grid-column: 1 / 3;
+												padding: 0.5em;
+												padding-bottom: 0;
+												grid-column: 1 / 4;
+												display: grid;
+												grid-template-columns: 1fr auto;
+												grid-gap: 5px;
+												> aside {
+													display: grid;
+													grid-template-columns: repeat(3, 1fr);
+													grid-gap: 5px;
+													> button {
+														> svg {
+															@include size(80%);
+														}
+													}
+												}
 											}
 											&.selected {
 												border: 1px solid $color-secondary;

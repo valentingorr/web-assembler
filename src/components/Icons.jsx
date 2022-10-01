@@ -1,9 +1,9 @@
 import ErrorNotificationUrl, {
-	ReactComponent as ErrorNotification
+	ReactComponent as Error
 } from "../assets/icons/notification-error.svg";
 
 import MessageNotificationUrl, {
-	ReactComponent as MessageNotification
+	ReactComponent as Message
 } from "../assets/icons/notification-message.svg";
 
 import CrossIconUrl, {
@@ -26,12 +26,17 @@ import DeleteUrl, {
 	ReactComponent as Delete
 } from "../assets/icons/delete.svg";
 
+import SaveUrl, {
+	ReactComponent as Save
+} from "../assets/icons/save.svg";
+
 export {
 	Cross,
 	Add,
 	FoldArrow,
-	MessageNotification,
-	ErrorNotification,
+	Message,
+	Error,
 	Duplicate,
-	Delete
+	Delete,
+	Save
 };

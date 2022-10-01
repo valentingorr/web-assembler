@@ -1,6 +1,7 @@
 import React, {
 	useState,
-	useEffect
+	useEffect,
+	useRef
 } from "react";
 
 import {
@@ -27,62 +28,51 @@ const Header = props => {
 	);
 };
 
-// const Viewport = props => {
-
-// 	const dispatch = useDispatch();
-
-// 	return (
-// 		<div cmenu="true" className="viewport" onContextMenu={event => {
-// 			dispatch(ACTIONS.contextMenu.set({
-// 				pos: [event.pageX, event.pageY],
-// 				items: [
-// 					{
-// 						title: "Delete",
-// 						icon: "delete",
-// 						click: props.delete
-// 					}
-// 				]
-// 			}));
-// 		}}>
-// 			<div scomponent="input-container">
-// 				<label htmlFor="viewport-width-input">Width</label>
-// 				<input placeholder="value" type="text" id="viewport-width-input" />
-// 				<span scomponent="label">Px</span>
-// 			</div>
-// 			<div scomponent="input-container">
-// 				<label htmlFor="viewport-height-input">Height</label>
-// 				<input placeholder="value" type="text" id="viewport-height-input" />
-// 				<span scomponent="label">Px</span>
-// 			</div>
-// 			<div scomponent="input-container">
-// 				<label htmlFor="viewport-height-input">Background</label>
-// 				<input type="color" id="viewport-height-input" />
-// 			</div>
-// 		</div>
-// 	);
-// };
-
 const newProject = props => {
 
 	const dispatch = useDispatch();
-
-	const [selectedViewport, setSelectedViewport] = useState(null);
 
 	const defaultVp = {
 		token: uuid(),
 		width: 1280,
 		height: 720,
 		background: "#fff",
-		title: ""
+		name: "untitled"
 	};
 
+	const [selectedViewport, setSelectedViewport] = useState(null);
 	const [title, setTitle] = useState("");
 	const [viewports, setViewports] = useState([defaultVp]);
-	const [vSection, setVSection] = useState("desktop")
+	const [vSection, setVSection] = useState("desktop");
+	const [customViewports, setCustomViewports] = useState([]);
+	const [models, setModels] = useState(Viewports.models);
 
-	// useEffect(() => {
-	// 	console.log(viewports)
-	// }, [viewports]);
+	const vpActions = {
+		delete: viewport => setViewports(v => v.filter(vp => vp.token !== viewport.token)),
+		duplicate: viewport => setViewports(v => [...v, {
+			...viewport,
+			token: uuid()
+		}]),
+		save: async viewport => {
+			await window.bridge.command("viewports")({ action: "save", viewport });
+			setCustomViewports(await window.bridge.command("viewports")({ action: "get" }));
+		}
+	};
+
+	useEffect(() => {
+		(async () => {
+			setCustomViewports(await window.bridge.command("viewports")({ action: "get" }));
+		})();
+		$(window).on("click", event => {
+			if($(`form[form="newProject"]`).has(event.target).length === 0) {
+				event.preventDefault();
+			}
+		})
+	}, []);
+
+	useEffect(() => setModels(m => {
+		return { ...m, custom: customViewports };
+	}), [customViewports]);
 
 	useEffect(() => {
 		document.querySelectorAll(".mockup[aspect]").forEach(el => {
@@ -95,13 +85,17 @@ const newProject = props => {
 			el.style[size[0].axe] = length + "px";
 			el.style[size[1].axe] = (length * (size[1].value / size[0].value)) + "px";
 		});
-	}, [vSection]);
+	}, [vSection, customViewports]);
 
 	return (
-		<form component="form" form="newProject">
+		<form onSubmit={event => {
+			event.preventDefault();
+			window.bridge.command("projects")("new", { viewports, title });
+			props.close();
+		}} component="form" form="newProject">
 			<Header title="New Project">
 				{
-					Object.keys(Viewports.models).map((device, deviceKey) => (
+					Object.keys(Viewports.models).filter(key => Viewports.models[key].length > 0).map((device, deviceKey) => (
 						<button onClick={() => setVSection(device)} type="button" key={deviceKey} className={device === vSection ? "selected" : null}>
 							<p>{device}</p>
 						</button>
@@ -112,25 +106,46 @@ const newProject = props => {
 				<aside className="models">
 					<div className="wrapper">
 						{
-							Viewports.models[vSection].map((model, modelKey) => (
-								<div onClick={() => {
-									if(selectedViewport !== null) {
-										return setViewports(v => v.map(vp => {
-											if(vp.token !== selectedViewport) return vp;
-											return {
-												...vp,
+							models[vSection].map((model, modelKey) => (
+								<div
+									cmenu={JSON.stringify(vSection === "custom")}
+									onContextMenu={event => {
+										if(vSection !== "custom") return;
+										dispatch(ACTIONS.contextMenu.set({
+											pos: [event.pageX, event.pageY],
+											items: [
+												{
+													title: "Delete",
+													icon: Icons.Delete,
+													click: async () => {
+														await window.bridge.command("viewports")({ action: "remove", id: model._id });
+														setCustomViewports(await window.bridge.command("viewports")({ action: "get" }));
+													}
+												}
+											]
+										}));
+									}}
+									onClick={() => {
+										if(selectedViewport !== null) {
+											return setViewports(v => v.map(vp => {
+												if(vp.token !== selectedViewport) return vp;
+												return {
+													...vp,
+													width: model.size[0],
+													height: model.size[1]
+												};
+											}))
+										} else {
+											setViewports(v => [...v, {
+												...defaultVp,
 												width: model.size[0],
 												height: model.size[1]
-											};
-										}))
-									} else {
-										setViewports(v => [...v, {
-											...defaultVp,
-											width: model.size[0],
-											height: model.size[1]
-										}]);
-									}
-								}} className="model" key={modelKey}>
+											}]);
+										}
+									}}
+									className="model"
+									key={modelKey}
+								>
 									<main>
 										<div className="mockup" aspect={`${model.size[0]}:${model.size[1]}`}></div>
 									</main>
@@ -176,17 +191,19 @@ const newProject = props => {
 													pos: [event.pageX, event.pageY],
 													items: [
 														{
+															title: "Save Viewport",
+															icon: Icons.Save,
+															click: () => vpActions.save(viewport)
+														},
+														{
 															title: "Duplicate",
 															icon: Icons.Duplicate,
-															click: () => setViewports(v => [...v, {
-																...viewport,
-																token: uuid()
-															}])
+															click: () => vpActions.duplicate(viewport)
 														},
 														{
 															title: "Delete",
 															icon: Icons.Delete,
-															click: () => setViewports(v => v.filter(vp => vp.token !== viewport.token))
+															click: () => vpActions.delete(viewport)
 														}
 													]
 												}));
@@ -201,7 +218,32 @@ const newProject = props => {
 												setSelectedViewport(viewport.token);
 											}} className={"viewport" + `${viewport.token === selectedViewport ? " selected" : ""}`} key={viewport.token}>
 												<section>
-													<Inputs.Text default={viewport.title === "" ? `viewport ${viewportKey}` : viewport.title} />
+													<Inputs.Text onChange={value => {
+														setViewports(v => v.map(vp => {
+															if(vp.token !== viewport.token) return vp;
+															return {
+																...vp,
+																name: value
+															};
+														}))
+													}} default={viewport.name === "" ? `untitled` : viewport.name} />
+													<aside>
+														<button description="save viewport" onClick={() => {
+															vpActions.save(viewport);
+														}} type="button" scomponent="icon">
+															<Icons.Save />
+														</button>
+														<button description="duplicate viewport" onClick={() => {
+															vpActions.duplicate(viewport);
+														}} type="button" scomponent="icon">
+															<Icons.Duplicate />
+														</button>
+														<button description="delete viewport" onClick={() => {
+															vpActions.delete(viewport);
+														}} type="button" scomponent="icon">
+															<Icons.Delete />
+														</button>
+													</aside>
 												</section>
 												<Inputs.Value onChange={value => {
 													setViewports(v => v.map(vp => {
@@ -238,7 +280,7 @@ const newProject = props => {
 						</div>
 					</main>
 					<footer>
-						<button type="button" scomponent="button">Close</button>
+						<button onClick={() => props.close()} type="button" scomponent="button">Close</button>
 						<button type="submit" scomponent="button">Create</button>
 					</footer>
 				</main>

@@ -3,6 +3,9 @@ import {
 } from "redux";
 
 export default combineReducers({
+	form: (state = "", action) => {
+		return action.type;
+	},
 	contextMenu: (state = { pos: [0, 0], items: [] }, action) => {
 		switch(action.type) {
 			case "set":
@@ -21,7 +24,6 @@ export default combineReducers({
 				break;
 			case "remove":
 				const index = state.indexOf(state.find(({ token }) => token === action.token));
-				console.log({ index });
 				state = state.splice(index, 1);
 				return state;
 				break;
@@ -41,13 +43,6 @@ export default combineReducers({
 								name: "newProject",
 								args: []
 							}
-						},
-						{
-							title: "New Viewport",
-							command: {
-								name: "newViewport",
-								args: []
-							}
 						}
 					]
 				}
@@ -57,17 +52,10 @@ export default combineReducers({
 			title: "Edit",
 			subMenu: [
 				{
-					title: "Undo",
+					title: "Settings",
 					command: {
-						name: "undo",
-						args: []
-					}
-				},
-				{
-					title: "Redo",
-					command: {
-						name: "redo",
-						args: []
+						name: "form",
+						args: ["settings"]
 					}
 				}
 			]

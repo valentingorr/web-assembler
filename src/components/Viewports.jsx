@@ -33,7 +33,8 @@ const models = {
 			"size": [ 1242, 2208 ]
 		}
 	],
-	"tablet": []
+	"tablet": [],
+	"custom": []
 }
 
 export {

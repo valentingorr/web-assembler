@@ -1,0 +1,33 @@
+@import "config";
+
+[route="home"] {
+	@include size(100%);
+	padding: .5em;
+	display: grid;
+	grid-template-rows: 40% 1fr;
+	grid-gap: 15px;
+	.banner {
+		background: linear-gradient(90deg, $color-secondary 0%, $color-primary 100%);
+		height: 100%;
+		width: 100%;
+		border: 2px solid $sep-primary;
+		border-radius: 10px;
+		overflow: hidden;
+	}
+	> main {
+		height: 100%;
+		display: grid;
+		grid-template-columns: 1fr 9fr;
+		> aside {
+			display: flex;
+			flex-direction: column;
+			> * {
+				width: 100%;
+				&:not(:last-child) {
+					margin-bottom: 10px;
+				}
+			}
+			height: 100%;
+		}
+	}
+}

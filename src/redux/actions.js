@@ -19,3 +19,7 @@ export const contextMenu = {
 		return { type: "hide" };
 	}
 };
+
+export const form = state => {
+	return { type: state };
+};

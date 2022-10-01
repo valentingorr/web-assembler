@@ -44,8 +44,8 @@ export default props => {
 		<div ref={notificationRef} type={props.type || "message"} component="notification">
 			{
 				{
-					"message": <MessageNotificationIcon />,
-					"error": <ErrorNotificationIcon />
+					"message": <Icons.Message />,
+					"error": <Icons.Error />
 				}[props.type || "message"]
 			}
 			<p>{props.message}</p>

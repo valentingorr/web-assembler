@@ -12,6 +12,13 @@ const JsonAtlas = new JsonDatabase({
 
 const db = JsonAtlas.connectTo("assembler");
 
+if(!db.items().hasOwnProperty("windowPreferences")) {
+	db.items.windowPreferences = {
+		position: [0, 0],
+		size: [0, 0]
+	}
+}
+
 if(!db.items.keyBinds) db.items.keyBinds = [
 	{ command: "newProject", binds: [ "CommandOrControl+N" ] },
 	{ command: "newViewport", binds: [ "CommandOrControl+Alt+V", "CommandOrControl+Shif+V" ] }

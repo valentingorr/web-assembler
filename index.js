@@ -7,13 +7,19 @@ const {
 
 const path = require("path");
 
+const JsonAtlas = require("./modules/database.js");
+
 let mainWindow;
 let commands = false;
 
 const createWindow = () => {
 	mainWindow = new BrowserWindow({
-		width: 1200,
-		height: 600,
+		minWidth: 1000,
+		minHeight: 600,
+		x: JsonAtlas.items.windowPreferences.position[0],
+		y: JsonAtlas.items.windowPreferences.position[1],
+		width: JsonAtlas.items.windowPreferences.size[0],
+		height: JsonAtlas.items.windowPreferences.size[1],
 		autoHideMenuBar: true,
 		icon: path.resolve(__dirname, "icon.png"),
 		titleBarStyle: "hidden",
@@ -43,6 +49,14 @@ const createWindow = () => {
 		}))
 	});
 
+	mainWindow.on("close", () => {
+		JsonAtlas.items.windowPreferences = {
+			position: mainWindow.getPosition(),
+			size: mainWindow.getSize()
+		}
+	});
+	mainWindow.on("closed", () => app.quit());
+
 };
 
 app.on("ready", createWindow);
@@ -62,7 +76,13 @@ if(!app.isPackaged) require("electron-reload")(__dirname, {
 	]
 });
 
-ipcMain.handle("command", (event, receive) => commands[receive.name](...receive.args));
+ipcMain.handle("command", (event, receive) => {
+	return commands[receive.name](...receive.args).catch(err => mainWindow.webContents.send("notification", {
+		type: "error",
+		code: err.code || null,
+		message: err.message
+	}));
+});
 ipcMain.handle("commands", (event, receive) => {
 	if(commands) return commands.all.map((command) => {
 		return { name: command.name, binds: command.binds };

@@ -51,14 +51,15 @@ const App = () => {
 
 	const notifications = useSelector(state => state.notifications);
 	const contextMenu = useSelector(state => state.contextMenu);
+	const form = useSelector(state => state.form);
 
-	const [newProjectForm, setNewProjectForm] = useState(!false);
+	const [newProjectForm, setNewProjectForm] = useState(false);
 	const [commands, setCommands] = useState([]);
 
 	useEffect(() => {
 		window.bridge.api.on("notification", (event, receive) => dispatch(ACTIONS.notifications.add({...receive, token: uuid()})));
 		window.bridge.api.on("commands", (event, receive) => setCommands(receive));
-		window.bridge.api.on("newProject", () => setNewProjectForm(true));
+		window.bridge.api.on("form", (event, receive) => dispatch(ACTIONS.form(receive)));
 		(async () => {
 			setCommands(await window.bridge.api.invoke("commands"));
 		})();
@@ -84,9 +85,14 @@ const App = () => {
 				: null
 			}
 			{
-				newProjectForm ?
-					<FORMS.newProject setNewProjectForm={setNewProjectForm} />
+				form !== "" ?
+					{
+						"newProject": <FORMS.newProject close={() => dispatch(ACTIONS.form("")) } />
+					}[form]
 				: null
+				// newProjectForm ?
+				// 	<FORMS.newProject setNewProjectForm={setNewProjectForm} />
+				// : null
 			}
 			<Routes>
 				<Route exact path="/" element={<Home />} />
