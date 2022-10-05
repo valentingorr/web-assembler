@@ -83,6 +83,7 @@ ipcMain.handle("command", (event, receive) => {
 		message: err.message
 	}));
 });
+
 ipcMain.handle("commands", (event, receive) => {
 	if(commands) return commands.all.map((command) => {
 		return { name: command.name, binds: command.binds };

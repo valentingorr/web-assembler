@@ -4,12 +4,23 @@ let window;
 
 const keybinds = JsonAtlas.items.keyBinds;
 
+const alias = [
+	{ name: "newProject", title: "New Project", command: { name: "form", args: ["newProject"] } }
+].map(command => {
+	const keybind = keybinds.find(bind => command.name === bind.command || command.alias === bind.command);
+	if(keybind) return {
+		...command,
+		binds: keybind.binds
+	};
+	return command;
+});
+
 const commands = new Proxy([
 
 	{
-		name: "newProject",
+		name: "form",
 		exec: (...args) => {
-			window.webContents.send("form", "newProject");
+			window.webContents.send("form", args[0]);
 			return { status: true };
 		}
 	},
@@ -61,7 +72,7 @@ const commands = new Proxy([
 	}
 
 ].map(command => {
-	const keybind = keybinds.find(bind => command.name === bind.command);
+	const keybind = keybinds.find(bind => command.name === bind.command || command.alias === bind.command);
 	if(keybind) return {
 		...command,
 		binds: keybind.binds
@@ -70,6 +81,7 @@ const commands = new Proxy([
 }), {
 	get(target, prop) {
 		if(prop === "all") return target;
+		if(prop === "alias") return alias;
 		const command = target.find(({ name }) => name === prop);
 		if(!command) return () => {
 			window.webContents.send("notification", {
@@ -92,6 +104,7 @@ const commands = new Proxy([
 
 	},
 });
+
 
 module.exports = w => {
 	window = w;

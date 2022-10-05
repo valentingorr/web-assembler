@@ -40,8 +40,9 @@ export default combineReducers({
 						{
 							title: "New Project",
 							command: {
-								name: "newProject",
-								args: []
+								alias: "newProject",
+								name: "form",
+								args: ["newProject"]
 							}
 						}
 					]

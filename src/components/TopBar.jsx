@@ -20,6 +20,8 @@ const SubMenu = props => {
 
 	const commands = useContext(CONTEXT.commands);
 
+	console.log(commands, props.subMenu)
+
 	const [selectedItem, setSelectedItem] = useState(null);
 
 	return (
