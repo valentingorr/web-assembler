@@ -11,6 +11,7 @@ const JsonAtlas = require("./modules/database.js");
 
 let mainWindow;
 let commands = false;
+let alias = false;
 
 const createWindow = () => {
 	mainWindow = new BrowserWindow({
@@ -39,14 +40,25 @@ const createWindow = () => {
 	mainWindow.openDevTools();
 
 	mainWindow.once("ready-to-show", () => {
-		commands = require("./modules/commands")(mainWindow);
+		let { commands: c, alias: a } = require("./modules/commands")(mainWindow);
+		commands = c;
+		alias = a;
 		commands.all.forEach(command => {
 			if(!command.hasOwnProperty("binds")) return;
 			command.binds.forEach(bind => globalShortcut.register(bind, () => commands[command.name]()));
 		});
-		mainWindow.webContents.send("commands", commands.all.map((command) => {
-			return { name: command.name, binds: command.binds };
-		}))
+		alias.forEach(command => {
+			if(!command.hasOwnProperty("binds")) return;
+			command.binds.forEach(bind => globalShortcut.register(bind, () => commands[command.command.name](...command.command.args)))
+		});
+		mainWindow.webContents.send("commands", {
+			commands: commands.all.map(command => {
+				return { name: command.name, binds: command.binds };
+			}),
+			alias: alias.map(command => {
+				return { name: command.name, binds: command.binds };
+			})
+		});
 	});
 
 	mainWindow.on("close", () => {
@@ -84,8 +96,21 @@ ipcMain.handle("command", (event, receive) => {
 	}));
 });
 
+ipcMain.handle("alias", (event, receive) => {
+	if(alias === false) return;
+	console.log(alias)
+	const a = alias.find(a => a.name === receive);
+	if(!a) return;
+	return commands[a.command.name](...a.command.args)
+});
+
 ipcMain.handle("commands", (event, receive) => {
-	if(commands) return commands.all.map((command) => {
-		return { name: command.name, binds: command.binds };
-	})
+	if(commands && alias) return {
+		commands: commands.all.map(command => {
+			return { name: command.name, binds: command.binds };
+		}),
+		alias: alias.map(command => {
+			return { name: command.name, binds: command.binds };
+		})
+	}
 });

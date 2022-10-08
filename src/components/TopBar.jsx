@@ -20,7 +20,7 @@ const SubMenu = props => {
 
 	const commands = useContext(CONTEXT.commands);
 
-	console.log(commands, props.subMenu)
+	useEffect(() => console.log(commands), [commands])
 
 	const [selectedItem, setSelectedItem] = useState(null);
 
@@ -30,7 +30,8 @@ const SubMenu = props => {
 				props.subMenu.map(subMenuItem => (
 					<div
 						onClick={() => {
-							if(subMenuItem.hasOwnProperty("command")) window.bridge.command(subMenuItem.command.name)(...subMenuItem.command.args);
+							if(subMenuItem.hasOwnProperty("command")) return window.bridge.command(subMenuItem.command.name)(...subMenuItem.command.args);
+							if(subMenuItem.hasOwnProperty("alias")) return window.bridge.alias(subMenuItem.alias)();
 						}}
 						onMouseEnter={() => setSelectedItem(subMenuItem.title)}
 						className="item"
@@ -46,8 +47,13 @@ const SubMenu = props => {
 							:
 								<div className="binds-wrapper">
 									{
-										commands.find(({ name }) => name === subMenuItem.command.name) ?
-											commands.find(({ name }) => name === subMenuItem.command.name).binds.map((bind, bindKey) => (
+										// commands.find(({ name }) => name === subMenuItem.command.name) ?
+										// 	commands.find(({ name }) => name === subMenuItem.command.name).binds.map((bind, bindKey) => (
+										// 		<span key={bindKey} className="bind">{bind.replace(/CommandOrControl/, "ctrl")}</span>
+										// 	))
+										// : null
+										subMenuItem.hasOwnProperty("alias") ?
+											commands.alias.find(alias => alias.name === subMenuItem.alias).binds.map((bind, bindKey) => (
 												<span key={bindKey} className="bind">{bind.replace(/CommandOrControl/, "ctrl")}</span>
 											))
 										: null

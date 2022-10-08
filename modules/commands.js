@@ -1,4 +1,7 @@
 const JsonAtlas = require("./database.js");
+const {
+	ipcRenderer
+} = require("electron");
 
 let window;
 
@@ -16,7 +19,6 @@ const alias = [
 });
 
 const commands = new Proxy([
-
 	{
 		name: "form",
 		exec: (...args) => {
@@ -26,17 +28,30 @@ const commands = new Proxy([
 	},
 	{
 		name: "projects",
-		exec: (...args) => {
+		exec: async (...args) => {
 			switch (args[0]) {
+				case "open":
+					console.log(args[1])
+					// window.webContents.send("project", { args[1] });
+					return { status: false, message: "error salope" };
+					break;
 				case "new":
 					args[1].viewports = args[1].viewports.map(viewport => {
 						const { width, height, background, name } = viewport;
 						return { width, height, background, name };
 					});
-					JsonAtlas.table("projects").insert({
+					const id = JsonAtlas.table("projects").insert({
 						...args[1],
 						title: args[1].title || "untitled"
-					});
+					})._id;
+					return {
+						status: true,
+						command: {
+							name: "projects",
+							args: [ "open", { id } ]
+						}
+					}
+
 					break;
 			}
 			return { status: false, message: "invalid supplied action" };
@@ -81,7 +96,6 @@ const commands = new Proxy([
 }), {
 	get(target, prop) {
 		if(prop === "all") return target;
-		if(prop === "alias") return alias;
 		const command = target.find(({ name }) => name === prop);
 		if(!command) return () => {
 			window.webContents.send("notification", {
@@ -95,6 +109,7 @@ const commands = new Proxy([
 			const response = await command.exec(...args);
 			if(response.status) {
 				if(response.hasOwnProperty("resolve")) return resolve(response.resolve);
+				if(response.hasOwnProperty("command")) return resolve(this.get(target, response.command.name)(...response.command.args));
 				return resolve();
 			} else {
 				if(response.hasOwnProperty("message")) return reject(response);
@@ -108,5 +123,5 @@ const commands = new Proxy([
 
 module.exports = w => {
 	window = w;
-	return commands;
+	return { commands, alias };
 };

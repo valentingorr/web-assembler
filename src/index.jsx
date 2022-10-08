@@ -65,6 +65,11 @@ const App = () => {
 		})();
 	}, []);
 
+
+	useEffect(() => {
+		console.log(commands)
+	}, [commands]);
+
 	return (
 		<CONTEXT.default {...{STYLE, commands}} >
 			<TopBar />

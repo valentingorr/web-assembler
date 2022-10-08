@@ -11,17 +11,28 @@ import * as ACTIONS from "../redux/actions.js";
 
 import { v4 as uuid } from "uuid";
 import $ from "jquery";
+import gsap from "gsap";
 
 import * as Icons from "./Icons.jsx";
 import * as Inputs from "./Inputs.jsx";
 
 import * as Viewports from "./Viewports.jsx";
 
+const Provider = props => {
+	return (
+		<div id="Form-Provider">
+			<div onClick={() => props.close()} className="background"></div>
+			{props.children}
+		</div>
+	);
+};
+
 const Header = props => {
 	return (
 		<header>
 			<header>
 				<p className="title">{props.title}</p>
+				<button onClick={() => props.close()}>close</button>
 			</header>
 			<main>{props.children}</main>
 		</header>
@@ -88,204 +99,206 @@ const newProject = props => {
 	}, [vSection, customViewports]);
 
 	return (
-		<form onSubmit={event => {
-			event.preventDefault();
-			window.bridge.command("projects")("new", { viewports, title });
-			props.close();
-		}} component="form" form="newProject">
-			<Header title="New Project">
-				{
-					Object.keys(Viewports.models).filter(key => Viewports.models[key].length > 0).map((device, deviceKey) => (
-						<button onClick={() => setVSection(device)} type="button" key={deviceKey} className={device === vSection ? "selected" : null}>
-							<p>{device}</p>
-						</button>
-					))
-				}
-			</Header>
-			<main>
-				<aside className="models">
-					<div className="wrapper">
-						{
-							models[vSection].map((model, modelKey) => (
-								<div
-									cmenu={JSON.stringify(vSection === "custom")}
-									onContextMenu={event => {
-										if(vSection !== "custom") return;
-										dispatch(ACTIONS.contextMenu.set({
-											pos: [event.pageX, event.pageY],
-											items: [
-												{
-													title: "Delete",
-													icon: Icons.Delete,
-													click: async () => {
-														await window.bridge.command("viewports")({ action: "remove", id: model._id });
-														setCustomViewports(await window.bridge.command("viewports")({ action: "get" }));
+		<Provider close={() => props.close()}>
+			<form component="form" onSubmit={event => {
+				event.preventDefault();
+				window.bridge.command("projects")("new", { viewports, title });
+				props.close();
+			}} component="form" form="newProject">
+				<Header close={() => props.close()} title="New Project">
+					{
+						Object.keys(Viewports.models).filter(key => Viewports.models[key].length > 0).map((device, deviceKey) => (
+							<button onClick={() => setVSection(device)} type="button" key={deviceKey} className={device === vSection ? "selected" : null}>
+								<p>{device}</p>
+							</button>
+						))
+					}
+				</Header>
+				<main>
+					<aside className="models">
+						<div className="wrapper">
+							{
+								models[vSection].map((model, modelKey) => (
+									<div
+										cmenu={JSON.stringify(vSection === "custom")}
+										onContextMenu={event => {
+											if(vSection !== "custom") return;	
+											dispatch(ACTIONS.contextMenu.set({
+												pos: [event.pageX, event.pageY],
+												items: [
+													{
+														title: "Delete",
+														icon: Icons.Delete,
+														click: async () => {
+															await window.bridge.command("viewports")({ action: "remove", id: model._id });
+															setCustomViewports(await window.bridge.command("viewports")({ action: "get" }));
+														}
 													}
-												}
-											]
-										}));
-									}}
-									onClick={() => {
-										if(selectedViewport !== null) {
-											return setViewports(v => v.map(vp => {
-												if(vp.token !== selectedViewport) return vp;
-												return {
-													...vp,
+												]
+											}));
+										}}
+										onClick={() => {
+											if(selectedViewport !== null) {
+												return setViewports(v => v.map(vp => {
+													if(vp.token !== selectedViewport) return vp;
+													return {
+														...vp,
+														width: model.size[0],
+														height: model.size[1]
+													};
+												}))
+											} else {
+												setViewports(v => [...v, {
+													...defaultVp,
 													width: model.size[0],
 													height: model.size[1]
-												};
-											}))
-										} else {
-											setViewports(v => [...v, {
-												...defaultVp,
-												width: model.size[0],
-												height: model.size[1]
-											}]);
-										}
-									}}
-									className="model"
-									key={modelKey}
-								>
-									<main>
-										<div className="mockup" aspect={`${model.size[0]}:${model.size[1]}`}></div>
-									</main>
-									<footer>
-										<p className="title">{model.name}</p>
-										<p scomponent="label">{model.size[0]} x {model.size[1]}</p>
-									</footer>
-								</div>
-							))
-						}
-					</div>
-				</aside>
-				<main>
-					<main>
-						<div scomponent="input-container">
-							<label htmlFor="newProject-title-input">Project Title</label>
-							<input value={title} onChange={event => setTitle(event.target.value)} placeholder="project title.." type="text" id="newProject-title-input" />
+												}]);
+											}
+										}}
+										className="model"
+										key={modelKey}
+									>
+										<main>
+											<div className="mockup" aspect={`${model.size[0]}:${model.size[1]}`}></div>
+										</main>
+										<footer>
+											<p className="title">{model.name}</p>
+											<p scomponent="label">{model.size[0]} x {model.size[1]}</p>
+										</footer>
+									</div>
+								))
+							}
 						</div>
-						<div className="viewports">
-							<header>
-								<p scomponent="label">Viewports {viewports.length}</p>
-								<button onClick={() => {
-									if(viewports.length > 0) return setViewports(v => [...v, {
-										...v[v.length - 1],
-										token: uuid()
-									}]);
-									setViewports(v => [{
-										...defaultVp,
-										token: uuid()
-									}])
-								}} type="button" scomponent="icon">
-									<Icons.Add />
-								</button>
-							</header>
-							<main>
-								<div className="wrapper">
-									{
-										viewports.map((viewport, viewportKey) => (
-											<div
-											cmenu="true"
-											onContextMenu={event => {
-												dispatch(ACTIONS.contextMenu.set({
-													pos: [event.pageX, event.pageY],
-													items: [
-														{
-															title: "Save Viewport",
-															icon: Icons.Save,
-															click: () => vpActions.save(viewport)
-														},
-														{
-															title: "Duplicate",
-															icon: Icons.Duplicate,
-															click: () => vpActions.duplicate(viewport)
-														},
-														{
-															title: "Delete",
-															icon: Icons.Delete,
-															click: () => vpActions.delete(viewport)
-														}
-													]
-												}));
-											}}
-											onClick={event => {
-												if(
-													!["svg", "input", "button"]
-													.map(tag => event.target.tagName.toLowerCase() !== tag)
-													.reduce((c, a) => c && a)
-												) return;
-												if(selectedViewport === viewport.token) return setSelectedViewport(null);
-												setSelectedViewport(viewport.token);
-											}} className={"viewport" + `${viewport.token === selectedViewport ? " selected" : ""}`} key={viewport.token}>
-												<section>
-													<Inputs.Text onChange={value => {
+					</aside>
+					<main>
+						<main>
+							<div scomponent="input-container">
+								<label htmlFor="newProject-title-input">Project Title</label>
+								<input value={title} onChange={event => setTitle(event.target.value)} placeholder="project title.." type="text" id="newProject-title-input" />
+							</div>
+							<div className="viewports">
+								<header>
+									<p scomponent="label">Viewports {viewports.length}</p>
+									<button onClick={() => {
+										if(viewports.length > 0) return setViewports(v => [...v, {
+											...v[v.length - 1],
+											token: uuid()
+										}]);
+										setViewports(v => [{
+											...defaultVp,
+											token: uuid()
+										}])
+									}} type="button" scomponent="icon">
+										<Icons.Add />
+									</button>
+								</header>
+								<main>
+									<div className="wrapper">
+										{
+											viewports.map((viewport, viewportKey) => (
+												<div
+												cmenu="true"
+												onContextMenu={event => {
+													dispatch(ACTIONS.contextMenu.set({
+														pos: [event.pageX, event.pageY],
+														items: [
+															{
+																title: "Save Viewport",
+																icon: Icons.Save,
+																click: () => vpActions.save(viewport)
+															},
+															{
+																title: "Duplicate",
+																icon: Icons.Duplicate,
+																click: () => vpActions.duplicate(viewport)
+															},
+															{
+																title: "Delete",
+																icon: Icons.Delete,
+																click: () => vpActions.delete(viewport)
+															}
+														]
+													}));
+												}}
+												onClick={event => {
+													if(
+														!["svg", "input", "button"]
+														.map(tag => event.target.tagName.toLowerCase() !== tag)
+														.reduce((c, a) => c && a)
+													) return;
+													if(selectedViewport === viewport.token) return setSelectedViewport(null);
+													setSelectedViewport(viewport.token);
+												}} className={"viewport" + `${viewport.token === selectedViewport ? " selected" : ""}`} key={viewport.token}>
+													<section>
+														<Inputs.Text onChange={value => {
+															setViewports(v => v.map(vp => {
+																if(vp.token !== viewport.token) return vp;
+																return {
+																	...vp,
+																	name: value
+																};
+															}))
+														}} default={viewport.name === "" ? `untitled` : viewport.name} />
+														<aside>
+															<button description="save viewport" onClick={() => {
+																vpActions.save(viewport);
+															}} type="button" scomponent="icon">
+																<Icons.Save />
+															</button>
+															<button description="duplicate viewport" onClick={() => {
+																vpActions.duplicate(viewport);
+															}} type="button" scomponent="icon">
+																<Icons.Duplicate />
+															</button>
+															<button description="delete viewport" onClick={() => {
+																vpActions.delete(viewport);
+															}} type="button" scomponent="icon">
+																<Icons.Delete />
+															</button>
+														</aside>
+													</section>
+													<Inputs.Value onChange={value => {
 														setViewports(v => v.map(vp => {
 															if(vp.token !== viewport.token) return vp;
 															return {
 																...vp,
-																name: value
+																width: value
 															};
 														}))
-													}} default={viewport.name === "" ? `untitled` : viewport.name} />
-													<aside>
-														<button description="save viewport" onClick={() => {
-															vpActions.save(viewport);
-														}} type="button" scomponent="icon">
-															<Icons.Save />
-														</button>
-														<button description="duplicate viewport" onClick={() => {
-															vpActions.duplicate(viewport);
-														}} type="button" scomponent="icon">
-															<Icons.Duplicate />
-														</button>
-														<button description="delete viewport" onClick={() => {
-															vpActions.delete(viewport);
-														}} type="button" scomponent="icon">
-															<Icons.Delete />
-														</button>
-													</aside>
-												</section>
-												<Inputs.Value onChange={value => {
-													setViewports(v => v.map(vp => {
-														if(vp.token !== viewport.token) return vp;
-														return {
-															...vp,
-															width: value
-														};
-													}))
-												}} default={viewport.width} label="width" units={["px"]} />
-												<Inputs.Value onChange={value => {
-													setViewports(v => v.map(vp => {
-														if(vp.token !== viewport.token) return vp;
-														return {
-															...vp,
-															height: value
-														};
-													}))
-												}} default={viewport.height} label="height" units={["px"]} />
-												<Inputs.Color onChange={value => {
-													setViewports(v => v.map(vp => {
-														if(vp.token !== viewport.token) return vp;
-														return {
-															...vp,
-															background: value
-														};
-													}))
-												}} default={viewport.background} label="background" />
-											</div>
-										))
-									}
-								</div>
-							</main>
-						</div>
+													}} default={viewport.width} label="width" units={["px"]} />
+													<Inputs.Value onChange={value => {
+														setViewports(v => v.map(vp => {
+															if(vp.token !== viewport.token) return vp;
+															return {
+																...vp,
+																height: value
+															};
+														}))
+													}} default={viewport.height} label="height" units={["px"]} />
+													<Inputs.Color onChange={value => {
+														setViewports(v => v.map(vp => {
+															if(vp.token !== viewport.token) return vp;
+															return {
+																...vp,
+																background: value
+															};
+														}))
+													}} default={viewport.background} label="background" />
+												</div>
+											))
+										}
+									</div>
+								</main>
+							</div>
+						</main>
+						<footer>
+							<button onClick={() => props.close()} type="button" scomponent="button">Close</button>
+							<button type="submit" scomponent="button">Create</button>
+						</footer>
 					</main>
-					<footer>
-						<button onClick={() => props.close()} type="button" scomponent="button">Close</button>
-						<button type="submit" scomponent="button">Create</button>
-					</footer>
 				</main>
-			</main>
-		</form>
+			</form>
+		</Provider>
 	);
 }
 

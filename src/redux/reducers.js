@@ -39,11 +39,7 @@ export default combineReducers({
 					subMenu: [
 						{
 							title: "New Project",
-							command: {
-								alias: "newProject",
-								name: "form",
-								args: ["newProject"]
-							}
+							alias: "newProject"
 						}
 					]
 				}
